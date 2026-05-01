@@ -1,8 +1,12 @@
 name: build-and-release
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:   # 👈 THIS adds the "Run workflow" button in GitHub UI
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        default: "v0.0.1"
 
 jobs:
   build-linux:
@@ -24,7 +28,7 @@ jobs:
           mkdir -p release
           mv dist/main release/tnl
 
-      - name: Upload artifact
+      - name: Upload linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -51,7 +55,7 @@ jobs:
           New-Item -ItemType Directory -Force release
           Rename-Item dist\main.exe release\tnl.exe
 
-      - name: Upload artifact
+      - name: Upload windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -64,9 +68,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
 
-      - name: Upload to GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
           files: |
             linux/tnl
             windows/tnl.exe
